@@ -1,4 +1,11 @@
 {% extends "bootstrap/base.html" %}
+
+{% block styles %}
+{{super()}}
+<link rel="stylesheet"
+      href="{{url_for('.static', filename='style.css')}}">
+{% endblock %}
+
 {% block title %}This is an example page{% endblock %}
 
 {% block navbar %}
@@ -8,7 +15,7 @@
 {% endblock %}
 
 {% block content %}
-  <h1>Hello, Bootstrap</h1>
+  <h1>Hello, Flask-Bootstrap ARIES</h1>
 {% endblock %}
 
 <!--
