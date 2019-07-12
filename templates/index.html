@@ -1,0 +1,80 @@
+<!-- https://cloud.google.com/appengine/docs/standard/python/getting-started/python-standard-env -->
+
+{% extends "base.html" %}
+
+<!--
+{% block styles %}
+{{super()}}
+<link rel="stylesheet"
+      href="{{url_for('.static', filename='style.css')}}">
+{% endblock %}
+
+{% block title %}ARIES@Penn{% endblock %}
+-->
+
+
+
+
+{% block content %}
+  <div>
+
+  <form class="form-inline" method="POST" action="{{ url_for('index') }}">
+      <div class="input-group">
+            <select name="colour" class="selectpicker form-control" onchange="this.form.submit()">
+              {% for colour in colours %}
+              {% if colour==keys["Colour"] %}
+                <option value="{{colour}}" selected>{{colour}}</option>
+              {% else %}
+                <option value="{{colour}}">{{colour}}</option>
+              {% endif %}
+              {% endfor %}
+            </select>
+      </div>
+  </form>
+
+  <br/>
+  <br/>
+
+  {% for cat in network.categories %}
+  <h4>{{ cat }}</h4>
+  {% endfor %}
+
+  {% for dis in diseases %}
+  <h4>{{ dis }}</h4>
+  {% endfor %}
+
+  {% for name,value in keys.items() %}
+    <p>Key = {{name}} : {{value}} </p>
+  {% endfor %}
+
+  </div>
+
+{% endblock %}
+<!--
+<html>
+  <head>
+    <title>Submit a form</title>
+   <link rel="stylesheet" type="text/css" href="/static/style.css">
+  </head>
+  <body>
+    <div id="container">
+      <div class="pagetitle">
+        <h1>Submit a form</h1>
+      </div>
+      <div id="main">
+        <form method="post" action="{{ url_for('submitted_form') }}">
+          <label for="name">Name:</label>
+          <input type="text" name="name"><br />
+          <label for="email">Email address:</label>
+          <input type="email" name="email"><br />
+          <label for="site_url">Website URL:</label>
+          <input type="url" name="site_url"><br />
+          <label for="comments">Comments:</label>
+          <textarea name="comments"></textarea><br />
+          <input type="submit">
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
+-->

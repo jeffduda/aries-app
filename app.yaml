@@ -5,6 +5,8 @@ threadsafe: true
 libraries:
 - name: ssl
   version: latest
+- name: numpy
+  version: "1.6.1"
 
 handlers:
 - url: /static

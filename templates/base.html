@@ -1,0 +1,97 @@
+{% extends "bootstrap/base.html" %}
+
+{% block styles %}
+{{super()}}
+<link rel="stylesheet"
+      href="{{url_for('.static', filename='style.css')}}">
+{% endblock %}
+
+{% block title %}ARIES@Penn{% endblock %}
+
+{% block navbar %}
+<div class='row' id="divStyle">
+	<div class="col-xs-2">
+		<h1>ARIES LOGO</h1>
+	</div>
+	<div class="col-xs-8">
+		<h3>WIP: Adaptive Radiology Interpretation &amp; Education System</h3>
+	</div>
+	<div class="col-xs-2">
+		<div class="sidebar">
+				Hospital of University of Pennsylvania <br />
+				Department of Radiology Based on <br />
+				the Work of Emmanuel Botzolakis<br />
+				Designed by J.Duda & H. Chen <br />
+				Build 7-9-2019<br />
+				<a href="https://www.gnu.org/copyleft/gpl.html">GNU Public License</a><br />
+			</div>
+	</div>
+</div>
+
+{% endblock %}
+
+
+
+{% block content %}{% endblock %}
+
+
+<!--
+
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	>
+
+<div class="container-fluid">
+<div>
+<h:form>
+  <div class='row' id="divStyle">
+
+    <div class="col-xs-10">
+        <div class="row">
+		    <div class="col-xs-3">
+			  <img alt="ARIES" src="aries.png" />
+			</div>
+
+			<div class="col-xs-9">
+			  <br />
+			  <h3>Adaptive Radiology Interpretation &amp; Education System</h3>
+			</div>
+	    </div>
+	    <div></div>
+	    <div class="row">
+	       <div class="col-xs-12">
+	           <ul class="nav nav-pills">
+                 <li><h:commandLink id="menu_home" action="#{serverModel.getNavRuleHome}" value="Home" class="${serverModel.menuClass('home')}"></h:commandLink></li>
+                 <li><h:commandLink id="menu_clinical" action="#{serverModel.getNavRuleClinical}" value="Clinical" class="${serverModel.menuClass('clinical')}"></h:commandLink></li>
+                 <li><h:commandLink id="menu_submit" action="#{serverModel.getNavRuleCase}" value="Submit Case" class="${serverModel.menuClass('case')}"></h:commandLink></li>
+                 <li><h:commandLink id="menu_research" action="#{serverModel.getNavRuleResearch}" value="Research" class="${serverModel.menuClass('research')}"></h:commandLink></li>
+                 <li><h:commandLink id="menu_education" action="#{serverModel.getNavRuleEducation}" value="Education" class="${serverModel.menuClass('education')}"></h:commandLink></li>
+                 <li><h:commandLink id="menu_qc" action="#{serverModel.getNavRuleQC}" value="QC" class="${serverModel.menuClass('qc')}"></h:commandLink></li>
+                 <li><h:commandLink id="menu_upload" action="#{serverModel.getNavRuleUpload}" value="Upload" class="${serverModel.menuClass('upload')}"></h:commandLink></li>
+               </ul>
+	       </div>
+	    </div>
+	</div>
+
+	<div class="col-xs-2">
+	  <div class="sidebar">
+        Hospital of University of Pennsylvania <br />
+        Department of Radiology Based on <br />
+        the Work of Emmanuel Botzolakis<br />
+        Designed by Howard Chen <br />
+        Build 8-11-2016<br />
+        <a href="https://www.gnu.org/copyleft/gpl.html">GNU Public License</a><br />
+        <h:commandButton class="btn-logout" value="Logout" action="#{loginBean.logout}" />
+        <p class="welcome">Welcome, #{loginBean.uname}</p>
+      </div>
+    </div>
+
+  </div>
+  </h:form>
+</div>
+</div>
+
+</ui:composition>
+-->

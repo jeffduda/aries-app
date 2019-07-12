@@ -1,4 +1,4 @@
-#!/Users/jtduda/env/bin/python2.7
+#!/Users/jtduda/pkg/env/bin/python2.7
 # -*- coding: utf-8 -*-
 import re
 import sys

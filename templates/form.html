@@ -1,3 +1,5 @@
+<!-- https://cloud.google.com/appengine/docs/standard/python/getting-started/python-standard-env -->
+
 {% extends "bootstrap/base.html" %}
 
 {% block styles %}
@@ -6,7 +8,7 @@
       href="{{url_for('.static', filename='style.css')}}">
 {% endblock %}
 
-{% block title %}This is an example page{% endblock %}
+{% block title %}ARIES@Penn{% endblock %}
 
 {% block navbar %}
 <div class="navbar navbar-fixed-top">
@@ -16,7 +18,38 @@
 
 {% block content %}
   <h1>Hello, Flask-Bootstrap ARIES</h1>
+
+  <div id="main">
+    <form method="post" action="{{ url_for('submitted_form') }}">
+      <label for="name">Name:</label>
+      <input type="text" name="name"><br />
+      <label for="email">Email address:</label>
+      <input type="email" name="email"><br />
+      <label for="site_url">Website URL:</label>
+      <input type="url" name="site_url"><br />
+      <label for="comments">Comments:</label>
+      <textarea name="comments"></textarea><br />
+      <input type="submit">
+    </form>
+  </div>
+
+  <select>
+    <option value="one">One</option>
+    <option value="two">Two</option>
+    <option value="three">Three</option>
+    <option value="four">Four</option>
+  </select>
+
+  <select name="colour" method="GET" action="/">
+    <option value="{{colours[0]}}" selected>{{colours[0]}}</option>
+    {% for colour in colours[1:] %}
+      <option value="{{colour}}">{{colour}}</option>
+    {% endfor %}
+  </select>
+
 {% endblock %}
+
+
 
 <!--
 <html>
