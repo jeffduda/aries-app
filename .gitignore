@@ -1,3 +1,4 @@
 # ignore all the backup files created by editors
 *~
 lib/
+*.pyc
