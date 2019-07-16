@@ -2,54 +2,136 @@
 
 {% extends "base.html" %}
 
-<!--
-{% block styles %}
-{{super()}}
-<link rel="stylesheet"
-      href="{{url_for('.static', filename='style.css')}}">
-{% endblock %}
-
-{% block title %}ARIES@Penn{% endblock %}
--->
-
-
-
-
 {% block content %}
+  <hr />
   <div>
 
   <form class="form-inline" method="POST" action="{{ url_for('index') }}">
-      <div class="input-group">
-            <select name="colour" class="selectpicker form-control" onchange="this.form.submit()">
-              {% for colour in colours %}
-              {% if colour==keys["Colour"] %}
-                <option value="{{colour}}" selected>{{colour}}</option>
-              {% else %}
-                <option value="{{colour}}">{{colour}}</option>
-              {% endif %}
-              {% endfor %}
-            </select>
-      </div>
-  </form>
-
-  <br/>
-  <br/>
-
   {% for cat in network.categories %}
   <h4>{{ cat }}</h4>
-  {% endfor %}
+    {% if network.number_of_nodes_in_category( cat ) > 0 %}
+      {% for n in network.nodes_in_category(cat) %}
+        <div class="input-group">
+          {% if n.menuValue != '' %}
+          <select name="{{n.name}}" class="hasChoice features selectpicker form-control" onchange="this.form.submit()">
+          {% else %}
+          <select name="{{n.name}}" class="features selectpicker form-control" onchange="this.form.submit()">
+          {% endif %}
 
-  {% for dis in diseases %}
-  <h4>{{ dis }}</h4>
+            {% for s in n.menuStates %}
+              {% if s==n.menuValue %}
+                <option value="{{s}}" selected="selected">{{s}}</option>
+              {% else %}
+                <option value="{{s}}">{{s}}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+      {% endfor %}
+    {% endif %}
   {% endfor %}
-
-  {% for name,value in keys.items() %}
-    <p>Key = {{name}} : {{value}} </p>
-  {% endfor %}
-
+  </form>
   </div>
+  <hr />
+
+  <script type="text/javascript">
+
+      // Load the Visualization API and the corechart package.
+      google.charts.load('current', {'packages':['corechart']});
+
+      // Set a callback to run when the Google Visualization API is loaded.
+      google.charts.setOnLoadCallback(drawDiagnosisChart);
+      google.charts.setOnLoadCallback(drawRadiographicChart);
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+      function drawDiagnosisChart() {
+
+        // Create the data tables.
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Diagnosis');
+        data.addColumn('number', 'Probability');
+        data.addRows([
+          {% for d in range(0,dxLength) %}
+          ['{{dx[d][0]}}', {{dx[d][1]}}]
+          {% if d < dxLength %},{% endif %}
+          {% endfor %}
+        ]);
+
+        // Set chart options
+        var options = {title:'Clinical Differential Diagnosis',
+                       titleTextStyle:{color:'#EEEEEE', fontSize:18},
+                       legend:'bottom',
+                       chartArea: {'width': '60%'},
+                       legendTextStyle:{color:'#EEEEEE', fontSize:18},
+                       hAxis:{ format:'percent',
+                               textStyle: {
+                                 color:'#EEEEEE', fontSize:18}
+                             },
+                       vAxis:{ textStyle: {
+                                 color:'#EEEEEE',fontSize:14}
+                             },
+                       backgroundColor:'#333333',
+                       colors:['#66B9BF']
+                        };
+
+        // Instantiate and draw our chart, passing in some options.
+        var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+      function drawRadiographicChart() {
+
+        // Create the data tables.
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Diagnosis');
+        data.addColumn('number', 'Probability');
+        data.addRows([
+          {% for d in range(0,dxLength) %}
+          ['{{dxRad[d][0]}}', {{dxRad[d][1]}}]
+          {% if d < dxLength %},{% endif %}
+          {% endfor %}
+        ]);
+
+        // Set chart options
+        var options = {title:'Radiographic Differential Diagnosis',
+                       titleTextStyle:{color:'#EEEEEE', fontSize:18},
+                       legend:'bottom',
+                       chartArea: {'width': '60%'},
+                       legendTextStyle:{color:'#EEEEEE', fontSize:18},
+                       hAxis:{ format:'percent',
+                               textStyle: {
+                                 color:'#EEEEEE', fontSize:18}
+                             },
+                       vAxis:{ textStyle: {
+                                 color:'#EEEEEE',fontSize:14}
+                             },
+                       backgroundColor:'#333333',
+                       colors:['#66B9BF']
+                        };
+
+        // Instantiate and draw our chart, passing in some options.
+        var chart = new google.visualization.BarChart(document.getElementById('chart_div_rad'));
+        chart.draw(data, options);
+      }
+    </script>
+
+
+    <div class="row">
+			<div class='col-xs-6'>
+        <div id="chart_div" style="min-width: 350px; max-width: 800px; height: 400px;"></div>
+			</div>
+			<div class='col-xs-6'>
+        <div id="chart_div_rad" style="min-width: 350px; max-width: 800px; height: 400px;"></div>
+			</div>
+		</div>
 
 {% endblock %}
+
 <!--
 <html>
   <head>

@@ -2,8 +2,11 @@
 
 {% block styles %}
 {{super()}}
-<link rel="stylesheet"
-      href="{{url_for('.static', filename='style.css')}}">
+
+<!--Load the AJAX API-->
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+<link rel="stylesheet" href="{{url_for('.static', filename='style.css')}}">
 {% endblock %}
 
 {% block title %}ARIES@Penn{% endblock %}
@@ -14,18 +17,27 @@
 		<h1>ARIES LOGO</h1>
 	</div>
 	<div class="col-xs-8">
-		<h3>WIP: Adaptive Radiology Interpretation &amp; Education System</h3>
+		<h3><span style="font-size:24pt">A</span>daptive <span style="font-size:24pt">R</span>adiology <span style="font-size:24pt">I</span>nterpretation &amp; <span style="font-size:24pt">E</span>ducation <span style="font-size:24pt">S</span>ystem</h3>
 	</div>
 	<div class="col-xs-2">
 		<div class="sidebar">
-				Hospital of University of Pennsylvania <br />
-				Department of Radiology Based on <br />
+				Hospital of University of Pennsylvania<br />
+				Department of Radiology Based on<br />
 				the Work of Emmanuel Botzolakis<br />
-				Designed by J.Duda & H. Chen <br />
-				Build 7-9-2019<br />
+				Designed by J.Duda & H. Chen<br />
+				Python Build 7-15-2019<br />
 				<a href="https://www.gnu.org/copyleft/gpl.html">GNU Public License</a><br />
 			</div>
 	</div>
+</div>
+
+<div class="row">
+   <div class="col-xs-12">
+       <ul class="nav nav-pills">
+         <li><a href="about.html", value="About">About</a></li>
+         <li><a href="index.html", value="Clinical">Clinical</a></li>
+       </ul>
+   </div>
 </div>
 
 {% endblock %}
