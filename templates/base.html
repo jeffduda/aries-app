@@ -34,15 +34,21 @@
 <div class="row">
    <div class="col-xs-12">
        <ul class="nav nav-pills">
-         <li><a href="about.html", value="About">About</a></li>
-         <li><a href="index.html", value="Clinical">Clinical</a></li>
+				 {% if page=='about' %}
+         <li><a href="about", value="About" class="active">About</a></li>
+				 {% else %}
+				 <li><a href="about", value="About" class="inactive">About</a></li>
+				 {% endif %}
+				 {% if page=='index' %}
+         <li><a href="index", value="Clinical" class='active'>Clinical</a></li>
+				 {% else %}
+				 <li><a href="index", value="Clinical" class='inactive'>Clinical</a></li>
+				 {% endif %}
        </ul>
    </div>
 </div>
-
+<hr />
 {% endblock %}
-
-
 
 {% block content %}{% endblock %}
 

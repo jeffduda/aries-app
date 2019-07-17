@@ -3,35 +3,69 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <hr />
-  <div>
-
+  <div class="container-fluid">
   <form class="form-inline" method="POST" action="{{ url_for('index') }}">
-  {% for cat in network.categories %}
-  <h4>{{ cat }}</h4>
-    {% if network.number_of_nodes_in_category( cat ) > 0 %}
-      {% for n in network.nodes_in_category(cat) %}
-        <div class="input-group">
-          {% if n.menuValue != '' %}
-          <select name="{{n.name}}" class="hasChoice features selectpicker form-control" onchange="this.form.submit()">
-          {% else %}
-          <select name="{{n.name}}" class="features selectpicker form-control" onchange="this.form.submit()">
-          {% endif %}
 
+  <div class="row"><div class="col-xs-12">
+
+    {% for cat in network.categories %}
+    <h4>{{ cat }}</h4>
+    {% if network.number_of_nodes_in_category( cat ) > 0 %}
+        {% for n in network.nodes_in_category(cat) %}
+          <div class="input-group">
+            <select name="{{n.name}}" class="{{n.hasChoice}} {{n.sensitive}} features selectpicker form-control" onchange="this.form.submit()">
             {% for s in n.menuStates %}
-              {% if s==n.menuValue %}
-                <option value="{{s}}" selected="selected">{{s}}</option>
-              {% else %}
-                <option value="{{s}}">{{s}}</option>
-              {% endif %}
+              <option value="{{s}}" {{n.is_state_selected(s)}}>{{s}}</option>
             {% endfor %}
-          </select>
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endfor %}
+            </select>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endfor %}
+
+    <!-- Hidden menu to make it easier to detect feature selection
+         for any network
+
+    <div style="display:none">
+        <select name="FeatureSelect" value="FeatureSelect">
+          <option value="FeatureSelect">FeatureSelect</option>
+        </select>
+    </div>
+    -->
+
+    <!-- </form> -->
+  </div></div>
+
+  <div class="row"></div>
+  <br />
+
+  <div class="row"><div class="col-xs-12">
+        <form class="form-inline form-row" method="POST" action="{{ url_for('index') }}">
+          <select name="SetDiagnosis", onchange="this.form.submit()">
+            {% if setDx == '' %}
+            <option value="cleardx" selected="selected">Set features by diagnosis</option>
+            {% else %}
+            <option value="cleardx">Set features by diagnosis</option>
+            {% endif %}
+            {% for d in network.get_node_states('Diagnosis') %}
+            {% if setDx==d %}
+            <option value="{{d}}" selected="selected">{{d}}</option>
+            {% else %}
+            <option value="{{d}}">{{d}}</option>
+            {% endif %}
+            {% endfor %}
+            </select>
+          </form>
+
+          <!-- <form class="form-inline form-row" method="POST" action="{{ url_for('index') }}"> -->
+            <input type="submit" name="HighlightFeatures" value="{{highlight}}" onchange="this.form.submit()" />
+          <!-- </form>
+          <form class="form-inline form-row" method="POST" action="{{ url_for('index') }}"> -->
+            <input type="submit" name="ClearDiagnosis" value="Reset/Clear feature values" />
+          <!-- </form> -->
+  </div></div>
+  
   </form>
-  </div>
   <hr />
 
   <script type="text/javascript">
@@ -52,15 +86,18 @@
         var data = new google.visualization.DataTable();
         data.addColumn('string', 'Diagnosis');
         data.addColumn('number', 'Probability');
+        data.addColumn('number', 'Cumulative Probability')
         data.addRows([
           {% for d in range(0,dxLength) %}
-          ['{{dx[d][0]}}', {{dx[d][1]}}]
+          ['{{dx[d][0]}}', {{dx[d][1]}}, {{dx[d][2]}}]
           {% if d < dxLength %},{% endif %}
           {% endfor %}
         ]);
 
         // Set chart options
         var options = {title:'Clinical Differential Diagnosis',
+                       seriesType: 'bars',
+                         series: {1: {type: 'line'}},
                        titleTextStyle:{color:'#EEEEEE', fontSize:18},
                        legend:'bottom',
                        chartArea: {'width': '60%'},
@@ -73,7 +110,7 @@
                                  color:'#EEEEEE',fontSize:14}
                              },
                        backgroundColor:'#333333',
-                       colors:['#66B9BF']
+                       colors:['#66B9BF','#E37722']
                         };
 
         // Instantiate and draw our chart, passing in some options.
@@ -90,15 +127,18 @@
         var data = new google.visualization.DataTable();
         data.addColumn('string', 'Diagnosis');
         data.addColumn('number', 'Probability');
+        data.addColumn('number', 'Cumulative Probability')
         data.addRows([
           {% for d in range(0,dxLength) %}
-          ['{{dxRad[d][0]}}', {{dxRad[d][1]}}]
+          ['{{dxRad[d][0]}}', {{dxRad[d][1]}}, {{dxRad[d][2]}}]
           {% if d < dxLength %},{% endif %}
           {% endfor %}
         ]);
 
         // Set chart options
         var options = {title:'Radiographic Differential Diagnosis',
+                       seriesType: 'bars',
+                         series: {1: {type: 'line'}},
                        titleTextStyle:{color:'#EEEEEE', fontSize:18},
                        legend:'bottom',
                        chartArea: {'width': '60%'},
@@ -111,7 +151,7 @@
                                  color:'#EEEEEE',fontSize:14}
                              },
                        backgroundColor:'#333333',
-                       colors:['#66B9BF']
+                       colors:['#66B9BF','#E37722']
                         };
 
         // Instantiate and draw our chart, passing in some options.
