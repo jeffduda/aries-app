@@ -4,10 +4,9 @@
 
 {% block content %}
   <div class="container-fluid">
-  <form class="form-inline" method="POST" action="{{ url_for('index') }}">
 
   <div class="row"><div class="col-xs-12">
-
+  <form class="form-inline" method="POST" action="{{ url_for('index') }}">
     {% for cat in network.categories %}
     <h4>{{ cat }}</h4>
     {% if network.number_of_nodes_in_category( cat ) > 0 %}
@@ -23,16 +22,13 @@
       {% endif %}
     {% endfor %}
 
-    <!-- Hidden menu to make it easier to detect feature selection
-         for any network
-
+    <!-- Hidden menu to make it easier to detect feature selection for any network -->
     <div style="display:none">
         <select name="FeatureSelect" value="FeatureSelect">
           <option value="FeatureSelect">FeatureSelect</option>
         </select>
     </div>
-    -->
-
+  </form>
     <!-- </form> -->
   </div></div>
 
@@ -57,15 +53,14 @@
             </select>
           </form>
 
-          <!-- <form class="form-inline form-row" method="POST" action="{{ url_for('index') }}"> -->
+          <form class="form-inline form-row" method="POST" action="{{ url_for('index') }}">
             <input type="submit" name="HighlightFeatures" value="{{highlight}}" onchange="this.form.submit()" />
-          <!-- </form>
-          <form class="form-inline form-row" method="POST" action="{{ url_for('index') }}"> -->
+          </form>
+          <form class="form-inline form-row" method="POST" action="{{ url_for('index') }}">
             <input type="submit" name="ClearDiagnosis" value="Reset/Clear feature values" />
-          <!-- </form> -->
+          </form>
   </div></div>
-  
-  </form>
+
   <hr />
 
   <script type="text/javascript">
