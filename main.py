@@ -16,6 +16,7 @@ import csv
 import time
 import numpy as np
 from easybayesy import NaiveBayesNetworkNode, NaiveBayesNetwork
+from BasalGanglia import BasalGangliaNetwork
 # [END imports]
 
 
@@ -29,141 +30,185 @@ app.config['SECRET_KEY'] = 'aries-key'
 app.highlight = False
 app.highlightText = "Highlight most discriminating features"
 
-app.network = NaiveBayesNetwork();
-app.network.read_csv("/Users/jtduda/pkg/aries-app/BasalGangliaV2.csv")
-app.dx = []
-app.dxRad = []
+app.highlightTurnOn = 'Highlight most discriminating features'
+app.highlightTurnOff =  '      Remove feature highlighting       '
+app.setDxTitle = 'cleardx'
+
 
 Bootstrap(app)
 # [END create_app]
+
+
+def getPreviousFeatures( network, form ):
+    previousFeatures = {}
+    for k in form.keys():
+        parts = k.split(":")
+        if ( len(parts)==2 ) and (parts[0] == "last"):
+            if network.has_node(parts[1]):
+                previousFeatures[parts[1]] = form[k]
+    return previousFeatures
 
 
 @app.route('/about')
 def about():
     return render_template('about.html', page='about')
 
-@app.route('/', methods=['GET', 'POST'])
-@app.route('/index', methods=['GET', 'POST'])
+@app.route('/', methods=['GET','POST'])
+@app.route('/index', methods=['GET','POST'])
 def index():
 
-    #print('index')
-    #print(request)
-    print('****')
-    print('****')
-    print(request.form)
+    print('%%%% index %%%%')
+    print request.method
 
-    #network = NaiveBayesNetwork();
-    #network.read_sheet("/Users/jtduda/pkg/aries-app/12-06-2018_BG_Bayesian_network_NaiveBayes.xlsx", "BGnetwork")
-    #network.read_csv("/Users/jtduda/pkg/aries-app/BasalGangliaV2.csv")
+    highlightText = flask.current_app.highlightTurnOn
+    highlightOn = "0"
 
-    #network = flask.current_app.network
-
-    dxList = flask.current_app.network.get_node_states("Diagnosis")
+    lastDx = flask.current_app.setDxTitle
     setDx = ''
 
     # For setting all features by diagnosis
     features = request.form.to_dict()
 
-    #if ( request.method=='POST'):
-    forceResolve = False
-    netTime = flask.current_app.network.modified
+    network = BasalGangliaNetwork()
+    lastNetwork = BasalGangliaNetwork()
+    dxList = network.get_node_states("Diagnosis")
+
+    ignoreFeatures = False
+
+    if request.method == "GET":
+        print( "*** GET action ***")
+        print(features)
+
+
+
+    previousFeatures = {}
+
+    if features.has_key('lastHighlight'):
+        highlightOn = features['lastHighlight']
 
     if request.method == "POST":
 
-        print( "--POST action")
-        print( features
-        )
+        #print(features)
+
+
+        print( "*** POST action ***")
+        print( '--- Features ---')
+        for k in features.keys():
+            print( k + '=' + features[k])
+        print( '--- End Features ---')
+
         if 'ClearDiagnosis' in features:
-            print("Clearing features")
-            setDx = ''
-            flask.current_app.network.reset()
+            print("*** ACTION -> CLEAR")
+            setDx = 'cleardx'
+            ignoreFeatures = True
 
-        elif 'HighlightFeatures' in features:
-            if flask.current_app.highlight == True:
-                flask.current_app.highlight = False;
-                flask.current_app.highlightText =  "Highlight most discriminating features"
-                for n in flask.current_app.network.nodeMap.keys():
-                    flask.current_app.network.nodes[ flask.current_app.network.nodeMap[n] ].sensitive = ''
-            else:
-                flask.current_app.highlight = True;
-                flask.current_app.highlightText = "     Remove feature highlighting      "
-                forceResolve = True
+        if features.has_key('HighlightFeatures'):
+            print("HighlightFeatures is present")
+            highlightAction = features['HighlightFeatures']
+            if highlightAction == flask.current_app.highlightTurnOn:
+                if highlightOn == "0":
+                    print("*** ACTION -> HIGHLIGHT ON")
+                    highlightOn = "1"
+                    highlightText = flask.current_app.highlightTurnOff
+            elif highlightAction == flask.current_app.highlightTurnOff:
+                if highlightOn == "1":
+                    print("*** ACTION -> HIGHLIGHT OFF")
+                    highlightOn = "0"
+                    highlightText = flask.current_app.highlightTurnOn
+                    for n in network.nodeMap.keys():
+                        network.nodes[ network.nodeMap[n] ].sensitive = ''
+        else:
+            if highlightOn == "0":
+                highlightText = flask.current_app.highlightTurnOn
+            elif highlightOn == "1":
+                highlightText = flask.current_app.highlightTurnOff
 
-        elif 'SetDiagnosis' in features:
-            setDx = features.get("SetDiagnosis")
-            print( "Set features by diagnosis "+setDx)
-            if ( setDx=="cleardx"):
-                for n in flask.current_app.network.nodes:
-                    flask.current_app.network.clear_node_state(n.name)
-                setDx = ''
+        # Check if the 'SetDiagnosis' menu has changed
+        if setDx == '':
+            setDx = features.get('SetDiagnosis')
+        lastDx = features.get('lastDx')
+        if setDx != lastDx:
+            print( '*** ACTION -> SET_DIAGNOSIS' )
+            ignoreFeatures = True
+            lastDx = setDx
+            if ( setDx=='cleardx'):
+                for n in network.nodes:
+                    network.clear_node_state(n.name)
             else:
                 dxIndex = dxList.index( setDx )
-                flask.current_app.network.set_node_states_by_result( dxIndex )
+                network.set_node_states_by_result( dxIndex )
 
-        elif 'FeatureSelect' in features:
-            print('Feature selection')
+        # Set all network FeatureSelect
+        previousFeatures = getPreviousFeatures(network, features)
+        if not(ignoreFeatures):
             for k in features.keys():
                 parts = features.get(k).split(":")
-                if flask.current_app.network.has_node(k):
+                if network.has_node(k):
+                    state = ''
                     if ( len(parts) > 1 ):
-                        flask.current_app.network.set_node_state(k, parts[1] )
+                        network.set_node_state(k, parts[1] )
+                        state = parts[1]
                     else:
-                        flask.current_app.network.clear_node_state(k)
+                        network.clear_node_state(k)
 
-    print(netTime)
-    print(flask.current_app.network.modified)
+                    if state != previousFeatures[k]:
+                        setDx = 'cleardx'
+                        lastDx = 'cleardx'
+                        print(k + " changed from " + previousFeatures[k] + ' to ' + state)
 
-    if (flask.current_app.network.modified  > netTime) or forceResolve:
-        print("network updated")
-        sorted, mat =  flask.current_app.network.get_diagnoses(False)
-        radSorted, radMat = flask.current_app.network.get_diagnoses(True)
 
-        flask.current_app.dx = []
-        flask.current_app.dxRad = []
 
-        maxDx = 10
-        if len(sorted) < maxDx:
-            maxDx = len(sorted)
+    print("solve network")
+    sorted, mat =  network.get_diagnoses(False)
+    radSorted, radMat = network.get_diagnoses(True)
 
-        cumSum = 0
-        for i in range(maxDx):
-            cumSum += mat[sorted[i]]
-            flask.current_app.dx.append( (dxList[sorted[i]],mat[sorted[i]],cumSum) )
+    dx = []
+    dxRad = []
 
-        cumSum = 0
-        for i in range(len(radSorted)):
-            cumSum += radMat[radSorted[i]]
-            flask.current_app.dxRad.append( (dxList[radSorted[i]],radMat[radSorted[i]],cumSum) )
+    maxDx = 10
+    if len(sorted) < maxDx:
+        maxDx = len(sorted)
 
-    if flask.current_app.highlight:
+    cumSum = 0
+    for i in range(maxDx):
+        cumSum += mat[sorted[i]]
+        dx.append( (dxList[sorted[i]],mat[sorted[i]],cumSum) )
+
+    cumSum = 0
+    for i in range(len(radSorted)):
+        cumSum += radMat[radSorted[i]]
+        dxRad.append( (dxList[radSorted[i]],radMat[radSorted[i]],cumSum) )
+
+    if highlightOn == "1":
         print('Calculating sensitivities')
-        for cat in flask.current_app.network.categories:
-            print(cat)
-            nodes = flask.current_app.network.names_of_nodes_in_category(cat)
+        for cat in network.categories:
+            #print(cat)
+            nodes = network.names_of_nodes_in_category(cat)
             maxSens = 0
             maxName = ''
             for n in nodes:
-                flask.current_app.network.nodes[ flask.current_app.network.nodeMap[n] ].sensitive = ''
-                if flask.current_app.network.nodes[ flask.current_app.network.nodeMap[n] ].value == '':
-                    s = flask.current_app.network.calculate_node_sensitivity(n, mat)
-                    print( n + ' ' + str(s))
+                network.nodes[ network.nodeMap[n] ].sensitive = ''
+                if network.nodes[ network.nodeMap[n] ].value == '':
+                    s = network.calculate_node_sensitivity(n, mat)
+                    #print( n + ' ' + str(s))
                     if s > maxSens:
                         maxSens = s
                         maxName = n
             if maxName != '':
-                flask.current_app.network.nodes[ flask.current_app.network.nodeMap[maxName] ].sensitive = 'sensitive'
+                network.nodes[ network.nodeMap[maxName] ].sensitive = 'sensitive'
 
+    print('highlightOn = ' + highlightOn)
 
     return render_template('index.html',
-        network=flask.current_app.network,
-        dx=flask.current_app.dx,
-        dxRad=flask.current_app.dxRad,
-        dxLength=len(flask.current_app.dx),
+        network=network,
+        dx=dx,
+        dxRad=dxRad,
+        dxLength=len(dx),
         page='index',
         setDx=setDx,
-        highlight=flask.current_app.highlightText)
-
-
+        lastDx=lastDx,
+        highlight=highlightText,
+        highlightOn=highlightOn)
 
 @app.errorhandler(500)
 def server_error(e):

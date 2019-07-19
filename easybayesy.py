@@ -75,7 +75,7 @@ class NaiveBayesNetwork:
         self.modified = time.time()
         self.nodes.append(node)
         self.nodeMap[node.name] = len(self.nodes)-1
-        print( node.name + str( len(self.nodes)-1 ))
+        #print( node.name + str( len(self.nodes)-1 ))
 
     def has_node(self,name):
         return self.nodeMap.has_key(name)
@@ -230,7 +230,7 @@ class NaiveBayesNetwork:
 
         node = self.nodes[ self.nodeMap[name] ]
         val = node.value
-        probs = currentProbs*0
+        probs = self.get_node_priors("Diagnosis")*0
 
         for v in range(len(node.states)):
             self.set_node_state(node.name, node.states[v])

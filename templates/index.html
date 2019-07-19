@@ -4,9 +4,10 @@
 
 {% block content %}
   <div class="container-fluid">
+  <form class="form-inline" method="POST" action="{{ url_for('index') }}">
 
   <div class="row"><div class="col-xs-12">
-  <form class="form-inline" method="POST" action="{{ url_for('index') }}">
+
     {% for cat in network.categories %}
     <h4>{{ cat }}</h4>
     {% if network.number_of_nodes_in_category( cat ) > 0 %}
@@ -22,13 +23,13 @@
       {% endif %}
     {% endfor %}
 
-    <!-- Hidden menu to make it easier to detect feature selection for any network -->
+    <!-- Copy of all features values so we know what changed -->
     <div style="display:none">
-        <select name="FeatureSelect" value="FeatureSelect">
-          <option value="FeatureSelect">FeatureSelect</option>
-        </select>
+      {% for n in network.nodes %}
+      <input type="hidden" name="last:{{n.name}}" value="{{n.value}}" onchange="this.form.submit()" />
+      {% endfor %}
     </div>
-  </form>
+
     <!-- </form> -->
   </div></div>
 
@@ -36,31 +37,29 @@
   <br />
 
   <div class="row"><div class="col-xs-12">
-        <form class="form-inline form-row" method="POST" action="{{ url_for('index') }}">
-          <select name="SetDiagnosis", onchange="this.form.submit()">
-            {% if setDx == '' %}
-            <option value="cleardx" selected="selected">Set features by diagnosis</option>
-            {% else %}
-            <option value="cleardx">Set features by diagnosis</option>
-            {% endif %}
-            {% for d in network.get_node_states('Diagnosis') %}
-            {% if setDx==d %}
-            <option value="{{d}}" selected="selected">{{d}}</option>
-            {% else %}
-            <option value="{{d}}">{{d}}</option>
-            {% endif %}
-            {% endfor %}
-            </select>
-          </form>
+    <input type="hidden" name="lastDx" value="{{lastDx}}" onchange="this.form.submit()" />
+    <input type="hidden" name="lastHighlight" value="{{highlightOn}}" onchange="this.form.submit()" />
 
-          <form class="form-inline form-row" method="POST" action="{{ url_for('index') }}">
-            <input type="submit" name="HighlightFeatures" value="{{highlight}}" onchange="this.form.submit()" />
-          </form>
-          <form class="form-inline form-row" method="POST" action="{{ url_for('index') }}">
-            <input type="submit" name="ClearDiagnosis" value="Reset/Clear feature values" />
-          </form>
+    <select name="SetDiagnosis", onchange="this.form.submit()">
+      {% if setDx == '' %}
+      <option value="cleardx" selected="selected">Set features by diagnosis</option>
+      {% else %}
+      <option value="cleardx">Set features by diagnosis</option>
+      {% endif %}
+      {% for d in network.get_node_states('Diagnosis') %}
+      {% if setDx==d %}
+      <option value="{{d}}" selected="selected">{{d}}</option>
+      {% else %}
+      <option value="{{d}}">{{d}}</option>
+      {% endif %}
+      {% endfor %}
+      </select>
+
+      <input type="submit" name="HighlightFeatures" value="{{highlight}}" onchange="this.form.submit()" />
+      <input type="submit" name="ClearDiagnosis" value="Reset/Clear feature values" />
   </div></div>
 
+  </form>
   <hr />
 
   <script type="text/javascript">
