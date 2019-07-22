@@ -12,11 +12,21 @@ import openpyxl
 from openpyxl import Workbook, load_workbook
 #import numpy as np
 import os
+import imp
 import csv
+import copy
 import time
 import numpy as np
 from easybayesy import NaiveBayesNetworkNode, NaiveBayesNetwork
-from BasalGanglia import BasalGangliaNetwork
+from WhiteMatterNetwork import WhiteMatterNetwork
+
+hasClosed = False
+try:
+    imp.find_module('BasalGangliaNetwork')
+    hasClosed = True
+    from BasalGangliaNetwork import BasalGangliaNetwork
+except ImportError:
+    hasClosed = False
 # [END imports]
 
 
@@ -33,6 +43,12 @@ app.highlightText = "Highlight most discriminating features"
 app.highlightTurnOn = 'Highlight most discriminating features'
 app.highlightTurnOff =  '      Remove feature highlighting       '
 app.setDxTitle = 'cleardx'
+app.hasClosed = hasClosed
+
+app.networks = [ 'White Matter' ]
+if hasClosed:
+    app.networks.append('Basal Ganglia')
+
 
 
 Bootstrap(app)
@@ -48,6 +64,12 @@ def getPreviousFeatures( network, form ):
                 previousFeatures[parts[1]] = form[k]
     return previousFeatures
 
+def getNetwork( networkName ):
+    if networkName == 'Basal Ganglia':
+        return BasalGangliaNetwork()
+    elif networkName == 'White Matter':
+        return WhiteMatterNetwork()
+    return None
 
 @app.route('/about')
 def about():
@@ -69,9 +91,9 @@ def index():
     # For setting all features by diagnosis
     features = request.form.to_dict()
 
-    network = BasalGangliaNetwork()
-    lastNetwork = BasalGangliaNetwork()
-    dxList = network.get_node_states("Diagnosis")
+
+    networkName = flask.current_app.networks[0]
+    lastNetwork = networkName
 
     ignoreFeatures = False
 
@@ -79,12 +101,17 @@ def index():
         print( "*** GET action ***")
         print(features)
 
-
-
     previousFeatures = {}
 
     if features.has_key('lastHighlight'):
         highlightOn = features['lastHighlight']
+
+    if features.has_key('lastNetwork'):
+        lastNetwork = features['lastNetwork']
+
+    network = getNetwork( lastNetwork )
+
+    dxList = network.get_node_states("Diagnosis")
 
     if request.method == "POST":
 
@@ -96,6 +123,14 @@ def index():
         for k in features.keys():
             print( k + '=' + features[k])
         print( '--- End Features ---')
+
+        if 'Network' in features:
+            if features['Network'] != features['lastNetwork']:
+                print("*** ACTION -> CHANGE NETWORK")
+                lastNetwork = features['Network']
+                ignoreFeatures = True
+                network = getNetwork(lastNetwork)
+                dxList = network.get_node_states("Diagnosis")
 
         if 'ClearDiagnosis' in features:
             print("*** ACTION -> CLEAR")
@@ -140,6 +175,8 @@ def index():
 
         # Set all network FeatureSelect
         previousFeatures = getPreviousFeatures(network, features)
+
+
         if not(ignoreFeatures):
             for k in features.keys():
                 parts = features.get(k).split(":")
@@ -158,7 +195,7 @@ def index():
 
 
 
-    print("solve network")
+    print("solve network: " + lastNetwork)
     sorted, mat =  network.get_diagnoses(False)
     radSorted, radMat = network.get_diagnoses(True)
 
@@ -208,7 +245,9 @@ def index():
         setDx=setDx,
         lastDx=lastDx,
         highlight=highlightText,
-        highlightOn=highlightOn)
+        highlightOn=highlightOn,
+        networks=flask.current_app.networks,
+        networkName=lastNetwork )
 
 @app.errorhandler(500)
 def server_error(e):

@@ -3,19 +3,20 @@
 import logging
 
 # [START imports]
-from flask import Flask, render_template, request
-import flask
-from flask_bootstrap import Bootstrap
-from flask_wtf import FlaskForm
-from wtforms import StringField
-from wtforms.validators import DataRequired
+#from flask import Flask, render_template, request
+#import flask
+#from flask_bootstrap import Bootstrap
+#from flask_wtf import FlaskForm
+#from wtforms import StringField
+#from wtforms.validators import DataRequired
 import openpyxl
 from openpyxl import Workbook, load_workbook
 #import numpy as np
-import os
+#import os
 import csv
 import time
 import numpy as np
+import sys
 # [END imports]
 
 
@@ -332,3 +333,150 @@ class NaiveBayesNetwork:
         prob = prob/100.0
 
         return disease, prob, key_value_dict
+
+    def sheet_to_class(self, table_file, tableName, classFileName, className):
+    #    tableDir = "/home/jiancong/Desktop/projects/BayesNet/NaiveBayes/BasalGanglia/BG_Bayesian_network_NaiveBayes.xlsx"
+    #    tableName = "BGnetwork"
+
+        file = open(classFileName,"w+")
+
+        self.filename = table_file
+        self.name = tableName
+        self.modified = time.time()
+
+        wb=openpyxl.load_workbook(table_file)
+        worksheet = wb[tableName]
+
+
+        #Read the keys
+        rows = list(worksheet.rows)
+        first_row = rows[0]
+        second_row = rows[1]
+
+        # Read the diagnoses and priors
+        diagnoses = []
+        prior = []
+        probTable = []
+        for row in rows[2:]:
+            row_values = [c.value for c in row if c.value is not None]
+
+            if len(row_values) ==0:
+                break
+
+            if row_values[0] is None:
+                break
+            diagnoses.append(row_values[0])
+            prior.append(row_values[1])
+            probTable.append(row_values[2:])
+        probTable = np.array(probTable)/100.0
+
+        prior = np.array(prior)
+        prior = prior/100.0
+        states = []
+        for d in diagnoses:
+            dx = "\'" + d + "\'"
+            states.append(dx)
+        states = ",".join(states)
+        priorString = "["
+        for i in range(len(prior) ):
+            if ( i > 0 ):
+                priorString += ","
+            priorString += str(prior[i])
+        priorString += "]"
+
+        print(probTable)
+
+
+
+
+        file.write( "from easybayesy import NaiveBayesNetworkNode, NaiveBayesNetwork\n")
+        file.write( "import numpy as np\n")
+        file.write( "import openpyxl\n")
+        file.write( "from openpyxl import Workbook, load_workbook\n\n")
+
+        file.write( "def " + className + "(): \n ")
+        file.write( "  network =  NaiveBayesNetwork(); \n\n" )
+
+        file.write( "   dx = NaiveBayesNetworkNode(\'Diagnosis\'" + ",[" + states + "]) \n" )
+        file.write( "   dx.category=\'Diagnosis\' \n" )
+        file.write( "   nDx = " + str(len(diagnoses)) + "\n" )
+        file.write( "   dx.priors = np.array( " + priorString + ") \n" )
+
+        file.write( "   network.add_node(dx) \n\n")
+
+        nDx = len(diagnoses)
+
+
+        keys = [c.value for c in first_row]
+        values = [c.value for c in second_row]
+
+        values = [v for v in values if v is not None]
+        keys = keys[:len(values)]
+
+        values = values[2:]
+        keys = keys[2:]
+
+        key_value_dict = {}
+
+        current_k = ""
+        for k, v, i in zip(keys, values, range(2, len(values) + 2)):
+            if k is not None:
+                current_k = k.split(" ")[0]
+                print(current_k)
+                key_value_dict[current_k] = {v.split(" ")[0]:i - 2}
+
+            else:
+                key_value_dict[current_k][v.split(" ")[0]] = i - 2
+
+
+        categories = []
+        for k in key_value_dict.keys():
+            vals = key_value_dict[k]
+            print(k)
+            print(vals.values())
+            kProbs = []
+            for v in vals.values():
+                kProbs.append( probTable[:,v])
+            kProbs = np.array(kProbs)
+            print(kProbs)
+
+            kProbString = "[ "
+            for i in range(kProbs.shape[0]):
+                kProbString += "[ "
+                for j in range(kProbs.shape[1]):
+                    p = kProbs[i,j]
+                    kProbString += str(p)
+                    if ( j < kProbs.shape[1]-1 ):
+                        kProbString += ","
+                    else:
+                        kProbString += " ]"
+                if ( i < kProbs.shape[0]-1 ):
+                    kProbString += ", "
+                else:
+                    kProbString += " ]"
+
+            nodeName = k.split(":")[1]
+            nodeCat = k.split(":")[0]
+            categories.append(nodeCat)
+
+            states = []
+            probs = np.array( (len(vals), nDx ))
+            for v in vals:
+                state = "\'" + str(v) + "\'"
+                states.append(state)
+
+            states = ",".join(states)
+
+            file.write( "   n = NaiveBayesNetworkNode('" + nodeName + "'" + ",[" + states + "]) \n" )
+            file.write( "   n.category = '" + nodeCat + "'\n");
+            file.write( "   n.parent = \'Diagnosis\' \n" )
+            file.write( "   n.probs = np.array( " + kProbString + ").transpose() \n")
+            file.write( "   network.add_node(n) \n\n")
+
+        file.write( "   network.categories = ['Signal', 'Spatial', 'Clinical'] \n" )
+        file.write( "   return network\n");
+
+        file.close()
+        return 0
+
+        #return disease, prob, key_value_dict
